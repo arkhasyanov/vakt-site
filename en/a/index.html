@@ -247,7 +247,7 @@ body.devmode .dev{display:block}
 </div>
 <script>
 (function(){
-  var CONFIG = { endpoint: "" };            // адрес приёма заявок; пока пусто
+  var CONFIG = { endpoint: "", gform: {"url": "https://docs.google.com/forms/d/e/1FAIpQLSfyY4sds3N1vEAgI9YLWqfb1Ogw2PrMjZcRZZYw1wD8tY3vsw/formResponse", "fields": {"stage": "entry.2107145159", "email": "entry.134612710", "variant": "entry.1143304370", "lang": "entry.474539048", "tz": "entry.205280505", "q1": "entry.1754980543", "q2": "entry.726516320", "q3": "entry.912453950", "q4": "entry.312577726", "city": "entry.653908510", "talk": "entry.2146001523"}} };   // endpoint: свой приём (JSON); gform: Google Form {url, fields}
   var FIXED = "a";                    // 'a'|'b'|'c' на страницах-вариантах, '' на главной
   var params = new URLSearchParams(location.search);
   var variant = FIXED;
@@ -323,6 +323,16 @@ body.devmode .dev{display:block}
   var f1 = document.getElementById('f1'), f2 = document.getElementById('f2'), msg = document.getElementById('msg'), msg2 = document.getElementById('msg2');
   var email = '';
   function post(payload){
+    if (CONFIG.gform) {
+      var g = CONFIG.gform, body = new URLSearchParams();
+      Object.keys(g.fields).forEach(function(k){
+        var v = payload[k]; if (v === undefined) return;
+        if (Array.isArray(v)) v = v.join('; ');
+        if (typeof v === 'boolean') v = v ? 'да' : 'нет';
+        body.append(g.fields[k], String(v));
+      });
+      return fetch(g.url, {method:'POST', mode:'no-cors', body: body}).then(function(){ return true; }).catch(function(){ return false; });
+    }
     if (!CONFIG.endpoint) return Promise.resolve(false);
     return fetch(CONFIG.endpoint, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}).then(function(r){ return r.ok; }).catch(function(){ return false; });
   }
@@ -343,6 +353,7 @@ body.devmode .dev{display:block}
     var o = {stage:2, email:email, variant:variant, lang:lang};
     ['q1','q2','q3','q4'].forEach(function(k){ o[k] = Array.prototype.map.call(f2.querySelectorAll('input[name='+k+']:checked'), function(i){ return i.value; }); });
     o.city = document.getElementById('city').value.trim(); o.talk = document.getElementById('talk').checked;
+    o.tz = (Intl.DateTimeFormat().resolvedOptions().timeZone||'');
     return o;
   }
   f2.querySelectorAll('input[name=q4]').forEach(function(i){ i.addEventListener('change', function(){
@@ -351,7 +362,7 @@ body.devmode .dev{display:block}
   }); });
   function finish(ok){
     document.getElementById('two').hidden = true; document.getElementById('three').hidden = false;
-    document.getElementById('threemsg').textContent = CONFIG.endpoint ? T.done : T.none;
+    document.getElementById('threemsg').textContent = (CONFIG.endpoint || CONFIG.gform) ? T.done : T.none;
   }
   if (f2) f2.addEventListener('submit', function(ev){ ev.preventDefault(); track('submit_answers'); post(collect()).then(finish); });
   var skip = document.getElementById('skip'); if (skip) skip.addEventListener('click', function(){ track('skip_answers'); finish(); });
