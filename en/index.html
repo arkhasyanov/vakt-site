@@ -246,7 +246,7 @@ body.devmode .dev{display:block}
 </div>
 <script>
 (function(){
-  var CONFIG = { endpoint: "", gform: {"url": "https://docs.google.com/forms/d/e/1FAIpQLSfyY4sds3N1vEAgI9YLWqfb1Ogw2PrMjZcRZZYw1wD8tY3vsw/formResponse", "fields": {"stage": "entry.2107145159", "email": "entry.134612710", "variant": "entry.1143304370", "lang": "entry.474539048", "tz": "entry.205280505", "q1": "entry.1754980543", "q2": "entry.726516320", "q3": "entry.912453950", "q4": "entry.312577726", "city": "entry.653908510", "talk": "entry.2146001523"}} };   // endpoint: свой приём (JSON); gform: Google Form {url, fields}
+  var CONFIG = { endpoint: "", gform: {"url": "https://docs.google.com/forms/d/e/1FAIpQLSfyY4sds3N1vEAgI9YLWqfb1Ogw2PrMjZcRZZYw1wD8tY3vsw/formResponse", "fields": {"stage": "entry.2107145159", "email": "entry.134612710", "variant": "entry.1143304370", "lang": "entry.474539048", "tz": "entry.205280505", "q1": "entry.1754980543", "q2": "entry.726516320", "q3": "entry.912453950", "q4": "entry.312577726", "city": "entry.653908510", "talk": "entry.2146001523", "utm_source": "entry.226770363", "utm_medium": "entry.178589070", "utm_campaign": "entry.901564978"}} };   // endpoint: свой приём (JSON); gform: Google Form {url, fields}
   var FIXED = "";                    // 'a'|'b'|'c' на страницах-вариантах, '' на главной
   var params = new URLSearchParams(location.search);
   var variant = FIXED;
@@ -319,6 +319,10 @@ body.devmode .dev{display:block}
   if ('IntersectionObserver' in window && how) new IntersectionObserver(function(es,o){ es.forEach(function(e){ if(e.isIntersecting){ track('scroll_how'); o.disconnect(); }}); }).observe(how);
   document.querySelectorAll('[data-cta]').forEach(function(a){ a.addEventListener('click', function(){ track('cta_click', {place:a.getAttribute('data-cta')}); }); });
   var utm = {}; ['utm_source','utm_medium','utm_campaign'].forEach(function(k){ utm[k] = params.get(k) || ''; });
+  try {
+    if (utm.utm_source || utm.utm_medium || utm.utm_campaign) localStorage.setItem('vaktUtm', JSON.stringify(utm));
+    else { var su = JSON.parse(localStorage.getItem('vaktUtm') || 'null'); if (su) utm = su; }
+  } catch(e) {}
   var f1 = document.getElementById('f1'), f2 = document.getElementById('f2'), msg = document.getElementById('msg'), msg2 = document.getElementById('msg2');
   var email = '';
   function post(payload){
@@ -349,7 +353,7 @@ body.devmode .dev{display:block}
     track('stage2_view');
   });
   function collect(){
-    var o = {stage:2, email:email, variant:variant, lang:lang};
+    var o = Object.assign({stage:2, email:email, variant:variant, lang:lang}, utm);
     ['q1','q2','q3','q4'].forEach(function(k){ o[k] = Array.prototype.map.call(f2.querySelectorAll('input[name='+k+']:checked'), function(i){ return i.value; }); });
     o.city = document.getElementById('city').value.trim(); o.talk = document.getElementById('talk').checked;
     o.tz = (Intl.DateTimeFormat().resolvedOptions().timeZone||'');
