@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VAKT: календарь с намазом</title>
+<meta name="description" content="VAKT показывает время намаза и заранее оставляет для него место в вашем дне. Ранний доступ для Mac и iPhone.">
+<meta name="robots" content="noindex">
+
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@400;500&display=swap">
+<script>try{var t=localStorage.getItem("vaktTheme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<style>
+:root{--canvas:#EDEDEA;--card:#FFFFFF;--ink:#111113;--muted:#5E5F66;--faint:#8C8D94;--line:rgba(17,17,19,.10);
+ --lime:#CBF35A;--lime-soft:#F4FBD9;--lime-line:#A9D12A;--coral:#FF5B3A;--coral-soft:#FFF0EC;--btn:#111113;--btn-ink:#fff;
+ --slot:#111113;--slot-ink:#fff;--ev:#E4E6EB;--ev2:#DCD6FF;--stage:#DDE9B5;
+ --display:'Unbounded','Onest',system-ui,sans-serif;--body:'Onest',system-ui,-apple-system,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--canvas:#0E0F11;--card:#17181B;--ink:#F2F2EE;--muted:#A9AAB1;--faint:#7C7D84;
+ --line:rgba(255,255,255,.12);--lime-soft:#1F2611;--lime-line:#8FB222;--coral-soft:#2A1A16;--btn:#CBF35A;--btn-ink:#111113;
+ --slot:#F2F2EE;--slot-ink:#111113;--ev:#2A2C31;--ev2:#3A3560;--stage:#1B2210;color-scheme:dark}}
+:root[data-theme="dark"]{--canvas:#0E0F11;--card:#17181B;--ink:#F2F2EE;--muted:#A9AAB1;--faint:#7C7D84;
+ --line:rgba(255,255,255,.12);--lime-soft:#1F2611;--lime-line:#8FB222;--coral-soft:#2A1A16;--btn:#CBF35A;--btn-ink:#111113;
+ --slot:#F2F2EE;--slot-ink:#111113;--ev:#2A2C31;--ev2:#3A3560;--stage:#1B2210;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;padding-inline:20px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1160px;margin-inline:auto}
+img,svg{max-width:100%}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--lime-line);outline-offset:3px;border-radius:10px}
+h1,h2,h3{font-family:var(--display);font-weight:500;letter-spacing:-.02em;margin:0;text-wrap:balance}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:18px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;font-family:var(--display);font-weight:500;font-size:19px;letter-spacing:.03em}
+.nav{display:flex;align-items:center;gap:10px}
+.lang{display:flex;padding:3px;border-radius:12px;background:var(--line)}
+.lang a,.lang span{padding:6px 12px;border-radius:9px;font-size:13px;font-weight:600;text-decoration:none}
+.lang span{background:var(--ink);color:var(--canvas)}
+@media(max-width:700px){.lang a,.lang span{display:grid;place-items:center;min-height:38px;min-width:42px;padding:0 8px}.theme button[aria-pressed]{width:40px;height:38px}.brand{min-height:44px}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 26px;border-radius:999px;background:var(--btn);color:var(--btn-ink);
+ font:600 15px var(--body);text-decoration:none;border:0;cursor:pointer}
+.btn{white-space:nowrap}
+.btn.sm{padding:10px 18px;font-size:14px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+/* hero */
+[hidden]{display:none!important}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:center;padding-block:36px 64px}
+.tag{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:var(--lime);color:#111113;font-weight:600;font-size:13px}
+.hero h1{font-size:clamp(32px,4.4vw,56px);line-height:1.06;margin-top:20px}
+.hero .sub{margin:22px 0 0;font-size:19px;color:var(--muted);max-width:30em}
+.hero .actions{margin-top:30px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.hero .note{font-size:14px;color:var(--faint)}
+.stage{position:relative;border-radius:40px;background:var(--stage);padding:28px;min-height:480px;display:grid;place-items:center;overflow:hidden}
+.stage::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(169,209,42,.28) 0 1.5px,transparent 1.5px 11px);opacity:.55}
+.stage>*{position:relative}
+/* ui-кусочки приложения */
+.ui{background:var(--card);border-radius:24px;border:1px solid var(--line);box-shadow:0 22px 50px rgba(17,17,19,.12);padding:18px;width:100%;max-width:440px}
+.ui .cap{font-size:11px;font-weight:600;letter-spacing:.07em;color:var(--faint);text-transform:uppercase;display:flex;justify-content:space-between;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:14px}
+.row.on{background:var(--lime-soft)}
+.row .ico{width:34px;height:34px;border-radius:50%;background:var(--line);display:grid;place-items:center;flex:none}
+.row.bad .ico{background:var(--coral);color:#fff}
+.row .nm{font-weight:600;font-size:14px;line-height:1.2}
+.row .tm{font-size:12px;color:var(--muted)}
+.row .r{margin-left:auto;font-size:12.5px;color:var(--muted);text-align:right}
+.row.bad .r{color:var(--coral);font-weight:600}
+.darkcard{background:#111113;color:#fff;border-radius:28px;padding:22px;width:100%;max-width:440px;box-shadow:0 22px 50px rgba(17,17,19,.25)}
+.darkcard .top{display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,.6)}
+.darkcard .dot{width:34px;height:34px;border-radius:50%;background:var(--lime);color:#111;display:grid;place-items:center}
+.darkcard .nm{font-family:var(--display);font-size:30px;margin-top:20px;letter-spacing:-.02em}
+.darkcard .cnt{font-family:var(--display);font-size:50px;color:var(--lime);letter-spacing:-.04em;line-height:1.05;margin-top:4px}
+.darkcard .cnt small{font:600 15px var(--body);color:rgba(255,255,255,.6);letter-spacing:0;margin-inline:4px 10px}
+.darkcard .cnt em{font:400 14px var(--body);color:rgba(255,255,255,.6);letter-spacing:0;font-style:normal}
+.pill{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#111;border-radius:14px;padding:10px 14px;font-weight:700;font-size:13px;margin-top:18px}
+.tl{position:relative;height:300px;margin-left:40px}
+.tl .h{position:absolute;left:-40px;font-size:11px;color:var(--faint);transform:translateY(-50%)}
+.tl .ln{position:absolute;left:0;right:0;height:1px;background:var(--line)}
+.tl .win{position:absolute;left:0;right:0;background:var(--lime-soft);border-top:2px solid var(--lime-line);
+ background-image:repeating-linear-gradient(135deg,rgba(169,209,42,.3) 0 1.5px,transparent 1.5px 9px)}
+.tl .win.bad{background-color:var(--coral-soft);border-top-color:var(--coral);background-image:repeating-linear-gradient(135deg,rgba(255,91,58,.3) 0 1.5px,transparent 1.5px 9px)}
+.tl .win b{position:absolute;left:10px;top:6px;font-family:var(--display);font-weight:500;font-size:12px}
+.tl .ev{position:absolute;left:34%;right:2px;border-radius:10px;background:var(--ev);padding:3px 10px;font-size:12px;font-weight:600;line-height:1.25;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.tl .ev.p{background:var(--ev2)}
+.tl .ev i{display:block;font-style:normal;font-weight:500;color:var(--muted);font-size:11px}
+.tl .slot{position:absolute;left:34%;right:2px;height:16px;border-radius:8px;background:var(--slot);color:var(--slot-ink);font-size:11px;font-weight:700;padding:0 10px;display:flex;align-items:center;gap:6px}
+.tl .new{position:absolute;left:34%;right:2px;border-radius:12px;border:2px dashed var(--coral);background:var(--card);padding:3px 10px;font-size:12px;font-weight:700;display:flex;align-items:center}
+.alert{display:flex;align-items:flex-start;gap:12px;background:var(--coral);color:#111113;border-radius:18px;padding:14px 16px;font-weight:600;font-size:14px;line-height:1.35}
+.alert .ic{width:30px;height:30px;border-radius:50%;background:#111113;color:#fff;display:grid;place-items:center;flex:none}
+.alts{display:grid;gap:8px;margin-top:10px}
+.alts div{border:1.5px solid var(--ink);border-radius:14px;padding:9px 12px;background:var(--card)}
+.alts b{font-size:14px}.alts span{display:block;font-size:12px;color:var(--muted)}
+.vis-stack{display:grid;gap:14px;width:100%;max-width:440px;justify-items:stretch}
+/* переключатель темы */
+.theme{display:flex;padding:3px;border-radius:12px;background:var(--line)}
+.theme button{width:34px;height:30px;border-radius:9px;border:0;background:transparent;color:var(--faint);display:grid;place-items:center;cursor:pointer}
+.theme button[aria-pressed=true]{background:var(--ink);color:var(--canvas)}
+/* лента дня */
+.ribbon{margin-block:8px 64px}
+.ribbon .track{position:relative;height:84px;border-radius:999px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.ribbon .seg{position:absolute;top:0;bottom:0;background:var(--lime-soft);background-image:repeating-linear-gradient(135deg,rgba(169,209,42,.35) 0 1.5px,transparent 1.5px 9px);
+ border-left:2px solid var(--lime-line);display:flex;align-items:center;justify-content:center}
+.ribbon .seg i{width:42%;height:22px;border-radius:11px;background:var(--slot);display:block;min-width:14px}
+.ribbon .lbls{position:relative;height:24px;margin-top:10px;font-size:13px;font-weight:600}
+.ribbon .lbls span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+@media(max-width:700px){.ribbon .lbls{height:50px}.ribbon .lbls span.lo{top:24px}}
+.ribbon .hd{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.ribbon .hd h2{font-size:clamp(22px,2.6vw,30px)}
+.ribbon .hd p{margin:0;color:var(--muted);font-size:15px}
+.quote{background:#111113;color:#fff;border-radius:40px;padding:clamp(30px,5vw,60px);margin-bottom:76px}
+.quote p{font-family:var(--display);font-weight:400;font-size:clamp(20px,2.7vw,31px);line-height:1.3;margin:0;max-width:26em;text-wrap:balance}
+.quote p::before{content:"";display:block;width:56px;height:8px;border-radius:4px;background:var(--lime);margin-bottom:26px}
+section{padding-block:0 80px}
+section>h2,.sech{font-size:clamp(24px,3vw,36px);margin-bottom:30px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.step{background:var(--card);border-radius:30px;padding:16px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.step .shot{border-radius:20px;background:var(--stage);aspect-ratio:5/4;display:grid;place-items:center;padding:16px;overflow:hidden;position:relative}
+.step .shot::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(169,209,42,.25) 0 1.5px,transparent 1.5px 11px);opacity:.5}
+.step .shot>*{position:relative;width:100%}
+.step .shot .ui{box-shadow:0 10px 24px rgba(17,17,19,.12);padding:12px;border-radius:18px}
+.step .shot .row{padding:5px 8px}
+.step .shot .row .ico{width:28px;height:28px}
+.step .shot .tl{margin-left:34px}
+.step .shot .alert{font-size:12px;padding:10px 12px}
+.step .shot .alts div{padding:7px 10px}
+.step .txt{padding:0 8px 8px}
+.step h3{font-size:19px}
+.step p{margin:10px 0 0;color:var(--muted);font-size:16px}
+.bento{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.bento .card{background:var(--card);border-radius:28px;padding:26px;display:flex;flex-direction:column;gap:10px;min-height:190px}
+.bento .chip{width:46px;height:46px;border-radius:50%;background:var(--lime);color:#111113;display:grid;place-items:center;margin-bottom:auto}
+.bento h3{font-size:17px}
+.bento p{margin:0;color:var(--muted);font-size:15.5px}
+.who{background:var(--lime-soft);border:1px solid var(--line);border-radius:36px;padding:clamp(26px,4vw,48px)}
+.who h2{margin-bottom:16px;font-size:clamp(22px,2.6vw,30px)}
+.who p{margin:0;font-size:clamp(19px,2.2vw,25px);line-height:1.45;max-width:34em}
+.faqgrid{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:48px;align-items:start}
+.faqgrid h2{position:sticky;top:20px;font-size:clamp(24px,3vw,36px)}
+.faq{display:grid;gap:10px}
+details{background:var(--card);border-radius:22px;overflow:hidden}
+summary{cursor:pointer;list-style:none;padding:20px 24px;font-weight:600;font-size:17px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";flex:none;width:30px;height:30px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:20px;line-height:1}
+details[open] summary::after{content:"−"}
+details .a{padding:0 24px 22px;color:var(--muted);font-size:16px;line-height:1.6;max-width:40em;overflow-wrap:anywhere}
+/* форма */
+.access{background:#111113;color:#fff;border-radius:40px;padding:clamp(26px,4vw,56px);display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:48px}
+.access h2{font-size:clamp(26px,3.2vw,40px)}
+.access .lead{margin:16px 0 0;color:rgba(255,255,255,.7);max-width:24em}
+.access .steps-i{display:flex;gap:8px;margin-top:28px}
+.access .steps-i i{height:6px;border-radius:3px;flex:1;background:rgba(255,255,255,.2)}
+.access .steps-i i.on{background:var(--lime)}
+.f1{display:grid;gap:12px}
+.f1 .rowi{display:flex;gap:10px;flex-wrap:wrap}
+.f1 input[type=email],.f1 input[type=text]{flex:1 1 220px;font:500 17px var(--body);padding:16px 18px;border-radius:999px;border:1.5px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;min-width:0}
+.f1 input::placeholder{color:rgba(255,255,255,.5)}
+.f1 input:focus-visible{outline:none;border-color:var(--lime)}
+.access .btn{background:var(--lime);color:#111113}
+.fine{font-size:13.5px;color:rgba(255,255,255,.55);margin:0}
+.msg{min-height:1.4em;font-size:15px;margin:0}.msg.err{color:#FF8A70}.msg.ok{color:var(--lime)}
+.q{display:grid;gap:10px;margin-bottom:20px}
+.q h3{font-family:var(--body);font-size:15px;font-weight:600;letter-spacing:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{cursor:pointer}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips span{display:inline-block;padding:10px 15px;border-radius:999px;border:1.5px solid rgba(255,255,255,.22);font-size:14.5px;font-weight:500;transition:background .12s}
+.chips input:checked+span{background:var(--lime);border-color:var(--lime);color:#111113;font-weight:600}
+.chips input:focus-visible+span{outline:3px solid var(--lime-line);outline-offset:2px}
+.chk{display:flex;gap:10px;align-items:center;font-size:15px}
+.chk input{width:20px;height:20px;accent-color:var(--lime)}
+.two .actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.two .skip{background:none;border:0;color:rgba(255,255,255,.65);cursor:pointer;font:500 15px var(--body);text-decoration:underline}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+footer{padding-block:28px 44px;color:var(--faint);font-size:14px;max-width:46em}
+.dev{position:fixed;right:12px;bottom:12px;background:#111113;color:#fff;border-radius:16px;padding:12px 14px;font-size:12.5px;display:none;z-index:50;
+ max-width:calc(100vw - 24px);box-shadow:0 14px 40px rgba(0,0,0,.35)}
+body.devmode .dev{display:block}
+.dev .dh{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.dev b{letter-spacing:.06em;text-transform:uppercase;font-size:11px;color:rgba(255,255,255,.6)}
+.dev.min .dr{display:none}
+.dev.min{padding:8px 12px}
+.dev .dr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px}
+.dev .dr>span{width:58px;color:rgba(255,255,255,.6)}
+.dev button,.dev a{font:600 12px var(--body);color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:8px;padding:6px 10px;cursor:pointer;text-decoration:none}
+.dev .on{background:var(--lime);color:#111}
+@media (max-width:480px){.nav .btn.sm{display:none}}
+@media (max-width:900px){
+ .hero{grid-template-columns:minmax(0,1fr);gap:32px;padding-block:16px 44px}
+ .stage{min-height:0;padding:20px;border-radius:30px}
+ .steps,.bento{grid-template-columns:minmax(0,1fr)}
+ .faqgrid{grid-template-columns:minmax(0,1fr);gap:20px}.faqgrid h2{position:static}
+ .access{grid-template-columns:minmax(0,1fr);gap:28px}
+ body{font-size:16px}
+ .brand{font-size:16px;gap:8px}.nav{gap:6px}.btn.sm{padding:9px 13px;font-size:13px}.lang a,.lang span{padding:5px 9px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="brand" href="../" aria-label="VAKT"><svg viewBox="0 0 120 120" width="34" height="34" aria-hidden="true"><rect width="120" height="120" rx="28" fill="#CBF35A"/><rect x="18" y="49" width="84" height="22" rx="11" fill="#111113" fill-opacity="0.14"/><rect x="25" y="49" width="10" height="22" rx="5" fill="#111113"/><rect x="43" y="49" width="14" height="22" rx="7" fill="#111113"/><rect x="63" y="49" width="10" height="22" rx="5" fill="#111113"/><rect x="80" y="49" width="14" height="22" rx="7" fill="#111113"/></svg><span>VAKT</span></a>
+  <nav class="nav" aria-label="Settings"><div class="theme" role="group" aria-label="Тема">
+      <button type="button" data-theme-btn="light" aria-label="Светлая тема" aria-pressed="false"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"></path></svg></button>
+      <button type="button" data-theme-btn="dark" aria-label="Тёмная тема" aria-pressed="false"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M240,96a8,8,0,0,1-8,8H216v16a8,8,0,0,1-16,0V104H184a8,8,0,0,1,0-16h16V72a8,8,0,0,1,16,0V88h16A8,8,0,0,1,240,96ZM144,56h8v8a8,8,0,0,0,16,0V56h8a8,8,0,0,0,0-16h-8V32a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16Zm72.77,97a8,8,0,0,1,1.43,8A96,96,0,1,1,95.07,37.8a8,8,0,0,1,10.6,9.06A88.07,88.07,0,0,0,209.14,150.33,8,8,0,0,1,216.77,153Zm-19.39,14.88c-1.79.09-3.59.14-5.38.14A104.11,104.11,0,0,1,88,64c0-1.79,0-3.59.14-5.38A80,80,0,1,0,197.38,167.86Z"></path></svg></button></div>
+    <div class="lang"><span>RU</span><a href="../en/c/" hreflang="en">EN</a></div>
+    <a class="btn sm" href="#access" data-cta="header">Ранний доступ</a></nav>
+</header>
+<main>
+<div class="hero" data-v="c"><div><span class="tag"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M240,96a8,8,0,0,1-8,8H216v16a8,8,0,0,1-16,0V104H184a8,8,0,0,1,0-16h16V72a8,8,0,0,1,16,0V88h16A8,8,0,0,1,240,96ZM144,56h8v8a8,8,0,0,0,16,0V56h8a8,8,0,0,0,0-16h-8V32a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16Zm72.77,97a8,8,0,0,1,1.43,8A96,96,0,1,1,95.07,37.8a8,8,0,0,1,10.6,9.06A88.07,88.07,0,0,0,209.14,150.33,8,8,0,0,1,216.77,153Zm-19.39,14.88c-1.79.09-3.59.14-5.38.14A104.11,104.11,0,0,1,88,64c0-1.79,0-3.59.14-5.38A80,80,0,1,0,197.38,167.86Z"></path></svg> Ранний доступ для Mac и iPhone</span><h1>Календарь, который бережёт время намаза</h1><p class="sub">Когда в расписании не остаётся места, VAKT говорит об этом сразу и подсказывает, что можно сдвинуть.</p><div class="actions"><a class="btn" href="#access" data-cta="hero-c">Получить ранний доступ</a><span class="note">Бесплатно на время теста.</span></div></div><div class="stage" aria-hidden="true"><div class="vis-stack"><div class="alert"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-80V80a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,172Z"></path></svg></span><span>Дорогой человек, в расписании не осталось места для намаза</span></div><div class="ui" style="max-width:none"><div class="tl" style="height:240px"><div class="ln" style="top:0.00%"></div><span class="h" style="top:0.00%">11:00</span><div class="ln" style="top:40.00%"></div><span class="h" style="top:40.00%">13:00</span><div class="ln" style="top:80.00%"></div><span class="h" style="top:80.00%">15:00</span><div class="win bad" style="top:27.00%;height:51.67%;opacity:1.0"><b>Зухр</b></div><div class="win" style="top:78.67%;height:21.33%;opacity:0.75"><b>Аср</b></div><div class="ev" style="top:10.00%;height:30.00%">Стратегия продукта<i>11:30–13:00</i></div><div class="ev" style="top:43.33%;height:16.67%">Ревью релиза<i>13:10–14:00</i></div><div class="new" style="top:61.67%;height:17.00%"><span>Новое событие</span></div></div><div class="alts"><div><b>14:25–15:20</b><span>зухр остаётся: слот 14:00–14:20</span></div><div><b>15:30–16:25</b><span>слоты зухра и асра остаются</span></div></div></div></div></div></div>
+<div class="ribbon"><div class="hd"><h2>Ваш день, вокруг намаза</h2><p>Время намаза и место для него в течение суток.</p></div><div class="track" role="img" aria-label="Ваш день, вокруг намаза"><div class="seg" style="left:0.00%;width:20.21%"><i></i></div><div class="seg" style="left:20.21%;width:8.21%"><i></i></div><div class="seg" style="left:51.46%;width:10.75%"><i></i></div><div class="seg" style="left:62.21%;width:11.54%"><i></i></div><div class="seg" style="left:73.75%;width:6.67%"><i></i></div><div class="seg" style="left:80.42%;width:19.58%"><i></i></div></div><div class="lbls"><span class="lo" style="left:10.10%">Иша</span><span class="" style="left:24.31%">Фаджр</span><span class="lo" style="left:56.83%">Зухр</span><span class="" style="left:67.98%">Аср</span><span class="lo" style="left:77.08%">Магриб</span><span class="" style="left:90.21%">Иша</span></div></div>
+<div class="quote"><p>Освободите время для Того, Кто создал время, создал вас и подарил вам этот день.</p></div>
+<section id="how"><h2>Как это работает</h2><div class="steps"><div class="step"><div class="shot" aria-hidden="true"><div class="ui"><div class="cap"><span>Время намаза</span><span><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M128,64a40,40,0,1,0,40,40A40,40,0,0,0,128,64Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,128Zm0-112a88.1,88.1,0,0,0-88,88c0,31.4,14.51,64.68,42,96.25a254.19,254.19,0,0,0,41.45,38.3,8,8,0,0,0,9.18,0A254.19,254.19,0,0,0,174,200.25c27.45-31.57,42-64.85,42-96.25A88.1,88.1,0,0,0,128,16Zm0,206c-16.53-13-72-60.75-72-118a72,72,0,0,1,144,0C200,161.23,144.53,209,128,222Z"></path></svg> Москва</span></div><div class="row"><span class="ico"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M240,152H199.55a73.54,73.54,0,0,0,.45-8,72,72,0,0,0-144,0,73.54,73.54,0,0,0,.45,8H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16ZM72,144a56,56,0,1,1,111.41,8H72.59A56.13,56.13,0,0,1,72,144Zm144,56a8,8,0,0,1-8,8H48a8,8,0,0,1,0-16H208A8,8,0,0,1,216,200ZM72.84,43.58a8,8,0,0,1,14.32-7.16l8,16a8,8,0,0,1-14.32,7.16Zm-56,48.84a8,8,0,0,1,10.74-3.57l16,8a8,8,0,0,1-7.16,14.31l-16-8A8,8,0,0,1,16.84,92.42Zm192,15.16a8,8,0,0,1,3.58-10.73l16-8a8,8,0,1,1,7.16,14.31l-16,8a8,8,0,0,1-10.74-3.58Zm-48-55.16,8-16a8,8,0,0,1,14.32,7.16l-8,16a8,8,0,1,1-14.32-7.16Z"></path></svg></span><span><span class="nm">Фаджр</span><br><span class="tm">04:51</span></span><span class="r">04:51–05:11</span></div><div class="row on"><span class="ico"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"></path></svg></span><span><span class="nm">Зухр</span><br><span class="tm">12:21</span></span><span class="r">13:00–13:20</span></div><div class="row"><span class="ico"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M164,72a76.2,76.2,0,0,0-20.26,2.73,55.63,55.63,0,0,0-9.41-11.54l9.51-13.57a8,8,0,1,0-13.11-9.18L121.22,54A55.9,55.9,0,0,0,96,48c-.58,0-1.16,0-1.74,0L91.37,31.71a8,8,0,1,0-15.75,2.77L78.5,50.82A56.1,56.1,0,0,0,55.23,65.67L41.61,56.14a8,8,0,1,0-9.17,13.11L46,78.77A55.55,55.55,0,0,0,40,104c0,.57,0,1.15,0,1.72L23.71,108.6a8,8,0,0,0,1.38,15.88,8.24,8.24,0,0,0,1.39-.12l16.32-2.88a55.74,55.74,0,0,0,5.86,12.42A52,52,0,0,0,84,224h80a76,76,0,0,0,0-152ZM56,104a40,40,0,0,1,72.54-23.24,76.26,76.26,0,0,0-35.62,40,52.14,52.14,0,0,0-31,4.17A40,40,0,0,1,56,104ZM164,208H84a36,36,0,1,1,4.78-71.69c-.37,2.37-.63,4.79-.77,7.23a8,8,0,0,0,16,.92,58.91,58.91,0,0,1,1.88-11.81c0-.16.09-.32.12-.48A60.06,60.06,0,1,1,164,208Z"></path></svg></span><span><span class="nm">Аср</span><br><span class="tm">14:56</span></span><span class="r">15:00–15:20</span></div></div></div><div class="txt"><h3>Город и время намаза</h3><p>Выбираете город, VAKT рассчитывает время каждого намаза и показывает ближайший.</p></div></div><div class="step"><div class="shot" aria-hidden="true"><div class="ui"><div class="tl" style="height:200px"><div class="ln" style="top:0.00%"></div><span class="h" style="top:0.00%">11:00</span><div class="ln" style="top:40.00%"></div><span class="h" style="top:40.00%">13:00</span><div class="ln" style="top:80.00%"></div><span class="h" style="top:80.00%">15:00</span><div class="win" style="top:27.00%;height:51.67%;opacity:1.0"><b>Зухр</b></div><div class="win" style="top:78.67%;height:21.33%;opacity:0.75"><b>Аср</b></div><div class="ev" style="top:10.00%;height:30.00%">Стратегия продукта<i>11:30–13:00</i></div><div class="ev" style="top:53.33%;height:26.67%">Ревью релиза<i>13:40–15:00</i></div><div class="slot" style="top:40.00%"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M240,96a8,8,0,0,1-8,8H216v16a8,8,0,0,1-16,0V104H184a8,8,0,0,1,0-16h16V72a8,8,0,0,1,16,0V88h16A8,8,0,0,1,240,96ZM144,56h8v8a8,8,0,0,0,16,0V56h8a8,8,0,0,0,0-16h-8V32a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16Zm72.77,97a8,8,0,0,1,1.43,8A96,96,0,1,1,95.07,37.8a8,8,0,0,1,10.6,9.06A88.07,88.07,0,0,0,209.14,150.33,8,8,0,0,1,216.77,153Zm-19.39,14.88c-1.79.09-3.59.14-5.38.14A104.11,104.11,0,0,1,88,64c0-1.79,0-3.59.14-5.38A80,80,0,1,0,197.38,167.86Z"></path></svg>Слот на намаз</div><div class="slot" style="top:80.00%"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M240,96a8,8,0,0,1-8,8H216v16a8,8,0,0,1-16,0V104H184a8,8,0,0,1,0-16h16V72a8,8,0,0,1,16,0V88h16A8,8,0,0,1,240,96ZM144,56h8v8a8,8,0,0,0,16,0V56h8a8,8,0,0,0,0-16h-8V32a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16Zm72.77,97a8,8,0,0,1,1.43,8A96,96,0,1,1,95.07,37.8a8,8,0,0,1,10.6,9.06A88.07,88.07,0,0,0,209.14,150.33,8,8,0,0,1,216.77,153Zm-19.39,14.88c-1.79.09-3.59.14-5.38.14A104.11,104.11,0,0,1,88,64c0-1.79,0-3.59.14-5.38A80,80,0,1,0,197.38,167.86Z"></path></svg>Слот на намаз</div></div></div></div><div class="txt"><h3>Место в вашем дне</h3><p>Для каждого намаза оставляется место: самое раннее из свободных, чтобы ничто его не заняло.</p></div></div><div class="step"><div class="shot" aria-hidden="true"><div class="alert"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-80V80a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,172Z"></path></svg></span><span>Дорогой человек, в расписании не осталось места для намаза</span></div><div class="alts" style="margin-top:10px"><div><b>14:25–15:20</b><span>зухр остаётся: слот 14:00–14:20</span></div></div></div><div class="txt"><h3>Предупреждение сразу</h3><p>Когда в расписании не осталось места, вы видите это сразу и выбираете, что сдвинуть.</p></div></div></div></section>
+<section><h2>Что внутри</h2><div class="bento"><div class="card"><div class="chip"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M240,96a8,8,0,0,1-8,8H216v16a8,8,0,0,1-16,0V104H184a8,8,0,0,1,0-16h16V72a8,8,0,0,1,16,0V88h16A8,8,0,0,1,240,96ZM144,56h8v8a8,8,0,0,0,16,0V56h8a8,8,0,0,0,0-16h-8V32a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16Zm72.77,97a8,8,0,0,1,1.43,8A96,96,0,1,1,95.07,37.8a8,8,0,0,1,10.6,9.06A88.07,88.07,0,0,0,209.14,150.33,8,8,0,0,1,216.77,153Zm-19.39,14.88c-1.79.09-3.59.14-5.38.14A104.11,104.11,0,0,1,88,64c0-1.79,0-3.59.14-5.38A80,80,0,1,0,197.38,167.86Z"></path></svg></div><h3>Место для каждого намаза</h3><p>В дне и в неделе, с учётом ваших дел.</p></div><div class="card"><div class="chip"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-80V80a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,172Z"></path></svg></div><h3>Предупреждение</h3><p>Когда места не осталось, подскажем другое время.</p></div><div class="card"><div class="chip"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M128,64a40,40,0,1,0,40,40A40,40,0,0,0,128,64Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,128Zm0-112a88.1,88.1,0,0,0-88,88c0,31.4,14.51,64.68,42,96.25a254.19,254.19,0,0,0,41.45,38.3,8,8,0,0,0,9.18,0A254.19,254.19,0,0,0,174,200.25c27.45-31.57,42-64.85,42-96.25A88.1,88.1,0,0,0,128,16Zm0,206c-16.53-13-72-60.75-72-118a72,72,0,0,1,144,0C200,161.23,144.53,209,128,222Z"></path></svg></div><h3>Джума</h3><p>Слот вместе с дорогой до мечети.</p></div><div class="card"><div class="chip"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"></path></svg></div><h3>Виджеты и строка меню</h3><p>Время намаза всегда перед глазами.</p></div><div class="card"><div class="chip"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg></div><h3>События и повторы</h3><p>Свои события в календаре, подключение других в разработке.</p></div><div class="card"><div class="chip"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" aria-hidden="true" viewBox="0 0 256 256" fill="currentColor"><path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm109.94-52.79a8,8,0,0,0-3.89-5.4l-29.83-17-.12-33.62a8,8,0,0,0-2.83-6.08,111.91,111.91,0,0,0-36.72-20.67,8,8,0,0,0-6.46.59L128,41.85,97.88,25a8,8,0,0,0-6.47-.6A112.1,112.1,0,0,0,54.73,45.15a8,8,0,0,0-2.83,6.07l-.15,33.65-29.83,17a8,8,0,0,0-3.89,5.4,106.47,106.47,0,0,0,0,41.56,8,8,0,0,0,3.89,5.4l29.83,17,.12,33.62a8,8,0,0,0,2.83,6.08,111.91,111.91,0,0,0,36.72,20.67,8,8,0,0,0,6.46-.59L128,214.15,158.12,231a7.91,7.91,0,0,0,3.9,1,8.09,8.09,0,0,0,2.57-.42,112.1,112.1,0,0,0,36.68-20.73,8,8,0,0,0,2.83-6.07l.15-33.65,29.83-17a8,8,0,0,0,3.89-5.4A106.47,106.47,0,0,0,237.94,107.21Zm-15,34.91-28.57,16.25a8,8,0,0,0-3,3c-.58,1-1.19,2.06-1.81,3.06a7.94,7.94,0,0,0-1.22,4.21l-.15,32.25a95.89,95.89,0,0,1-25.37,14.3L134,199.13a8,8,0,0,0-3.91-1h-.19c-1.21,0-2.43,0-3.64,0a8.08,8.08,0,0,0-4.1,1l-28.84,16.1A96,96,0,0,1,67.88,201l-.11-32.2a8,8,0,0,0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.09,8.09,0,0,0-3-3.06l-28.6-16.29a90.49,90.49,0,0,1,0-28.26L61.67,97.63a8,8,0,0,0,3-3c.58-1,1.19-2.06,1.81-3.06a7.94,7.94,0,0,0,1.22-4.21l.15-32.25a95.89,95.89,0,0,1,25.37-14.3L122,56.87a8,8,0,0,0,4.1,1c1.21,0,2.43,0,3.64,0a8.08,8.08,0,0,0,4.1-1l28.84-16.1A96,96,0,0,1,188.12,55l.11,32.2a8,8,0,0,0,1.22,4.22c.62,1,1.23,2,1.8,3.06a8.09,8.09,0,0,0,3,3.06l28.6,16.29A90.49,90.49,0,0,1,222.9,142.12Z"></path></svg></div><h3>Расчёт под вас</h3><p>Город, метод расчёта и мазхаб для асра.</p></div></div></section>
+<section><div class="who"><h2>Для кого</h2><p>Для тех, кто хочет, чтобы намаз был в основе распорядка дня: студент, предприниматель, сотрудник, мама. Любой день недели.</p></div></section>
+<section><div class="faqgrid"><h2>Вопросы</h2><div class="faq"><details><summary>Это просто календарь?</summary><div class="a">Это календарь, который начинает день с намаза и бережёт для него место.</div></details><details><summary>Нужно ли переносить мои события?</summary><div class="a">Нет. События, которые вы создаёте в VAKT, хранятся на вашем компьютере. Подключение других календарей в разработке, и в анкете мы спрашиваем, что вам важнее.</div></details><details><summary>На каких устройствах?</summary><div class="a">Сначала Mac и iPhone. Другие устройства зависят от интереса, поэтому мы спрашиваем в анкете.</div></details><details><summary>Какой метод расчёта?</summary><div class="a">Вы сможете выбрать метод расчёта и мазхаб для асра. По умолчанию метод зависит от региона.</div></details><details><summary>Сколько стоит?</summary><div class="a">Во время теста бесплатно. Цену обсудим с ранними пользователями.</div></details><details><summary>Данные уходят к вам?</summary><div class="a">События хранятся на вашем компьютере и никуда не отправляются.</div></details></div></div></section>
+<section id="access"><div class="access">
+  <div><h2>Ранний доступ</h2><p class="lead">Оставьте почту. Напишем один раз, когда будет доступ.</p><div class="steps-i" aria-hidden="true"><i class="on"></i><i></i></div></div>
+  <div>
+    <div id="one"><form id="f1" class="f1" novalidate>
+      <div class="rowi"><input id="email" type="email" autocomplete="email" placeholder="Электронная почта" aria-label="Электронная почта" required>
+      <button class="btn" type="submit">Получить доступ</button></div>
+      <div class="hp" aria-hidden="true"><label for="hp">Leave empty<input id="hp" tabindex="-1" autocomplete="off"></label></div>
+      <p class="fine">Без рассылок. Только письмо о доступе.</p><p id="msg" class="msg" role="status" aria-live="polite"></p></form></div>
+    <div id="two" class="two" hidden><form id="f2" novalidate>
+      <h3 style="font-size:20px;margin-bottom:6px">Вы в списке</h3><p class="fine" style="margin-bottom:22px">Пять быстрых вопросов помогут сделать VAKT для вас. Это займёт минуту.</p>
+      <div class="q"><h3>Где живёт ваш день?</h3><div class="chips"><label><input type="checkbox" name="q1" value="Календарь на компьютере"><span>Календарь на компьютере</span></label><label><input type="checkbox" name="q1" value="Календарь в телефоне"><span>Календарь в телефоне</span></label><label><input type="checkbox" name="q1" value="Заметки"><span>Заметки</span></label><label><input type="checkbox" name="q1" value="На бумаге"><span>На бумаге</span></label><label><input type="checkbox" name="q1" value="Нигде"><span>Нигде</span></label></div></div>
+      <div class="q"><h3>На чём хотите пользоваться?</h3><div class="chips"><label><input type="checkbox" name="q2" value="Mac"><span>Mac</span></label><label><input type="checkbox" name="q2" value="iPhone"><span>iPhone</span></label><label><input type="checkbox" name="q2" value="Windows"><span>Windows</span></label><label><input type="checkbox" name="q2" value="Android"><span>Android</span></label><label><input type="checkbox" name="q2" value="Apple Watch"><span>Apple Watch</span></label></div></div>
+      <div class="q"><h3>Как часто расписание сдвигает намаз?</h3><div class="chips"><label><input type="radio" name="q3" value="Каждый день"><span>Каждый день</span></label><label><input type="radio" name="q3" value="Раз в неделю"><span>Раз в неделю</span></label><label><input type="radio" name="q3" value="Раз в месяц"><span>Раз в месяц</span></label><label><input type="radio" name="q3" value="Редко"><span>Редко</span></label></div></div>
+      <div class="q"><h3>Что важнее всего? Выберите до двух</h3><div class="chips"><label><input type="checkbox" name="q4" value="Место для намаза в календаре"><span>Место для намаза в календаре</span></label><label><input type="checkbox" name="q4" value="Виджеты и строка меню"><span>Виджеты и строка меню</span></label><label><input type="checkbox" name="q4" value="Джума с дорогой"><span>Джума с дорогой</span></label><label><input type="checkbox" name="q4" value="Уведомления перед намазом"><span>Уведомления перед намазом</span></label><label><input type="checkbox" name="q4" value="Режим Рамадана"><span>Режим Рамадана</span></label><label><input type="checkbox" name="q4" value="Для семьи"><span>Для семьи</span></label></div></div>
+      <div class="q"><h3><label for="city">Ваш город</label></h3><div class="f1"><input id="city" type="text" placeholder="Например, Москва" autocomplete="address-level2"></div></div>
+      <label class="chk"><input id="talk" type="checkbox">Готов(а) рассказать об этом 20 минут</label>
+      <div class="actions" style="margin-top:22px"><button class="btn" type="submit">Сохранить ответы</button><button id="skip" class="skip" type="button">Пропустить</button></div>
+      <p id="msg2" class="msg" role="status" aria-live="polite"></p></form></div>
+    <div id="three" hidden><h3 style="font-size:22px">Вы в списке</h3><p id="threemsg" class="lead" style="margin-top:12px"></p></div>
+  </div>
+</div></section>
+</main>
+<footer>VAKT. События хранятся на вашем компьютере. Политика конфиденциальности появится до публичного запуска.</footer>
+</div>
+<div class="dev" id="dev"><div class="dh"><b>Debug</b><button type="button" id="devmin" aria-label="Свернуть / Minimize">–</button></div>
+  <div class="dr"><span>Variant</span><button data-dv="a">A</button><button data-dv="b">B</button><button data-dv="c">C</button>
+    <button data-dv="r">Random</button></div>
+  <div class="dr"><span>Theme</span><button data-dt="light">Light</button><button data-dt="dark">Dark</button><button data-dt="auto">Auto</button></div>
+  <div class="dr"><span>Language</span><a href="../en/c/">EN</a></div>
+  <div class="dr"><span>Form</span><button data-df="1">Step 1</button><button data-df="2">Step 2</button><button data-df="3">Done</button></div>
+  <div class="dr"><span>Links</span><a href="../a/">/a</a><a href="../b/">/b</a><a href="../c/">/c</a><a href="../">main</a></div>
+</div>
+<script>
+(function(){
+  var CONFIG = { endpoint: "" };            // адрес приёма заявок; пока пусто
+  var FIXED = "c";                    // 'a'|'b'|'c' на страницах-вариантах, '' на главной
+  var params = new URLSearchParams(location.search);
+  var variant = FIXED;
+  if (!variant) {
+    var q = (params.get('v') || '').toLowerCase();
+    try { variant = q || localStorage.getItem('vaktVariant') || ''; } catch(e) { variant = q; }
+    if (['a','b','c'].indexOf(variant) < 0) variant = ['a','b','c'][Math.floor(Math.random()*3)];
+    try { localStorage.setItem('vaktVariant', variant); } catch(e) {}
+    document.querySelectorAll('[data-v]').forEach(function(el){ el.hidden = el.getAttribute('data-v') !== variant; });
+  }
+  document.documentElement.setAttribute('data-variant', variant);
+  var lang = document.documentElement.lang;
+  var T = {"done": "Спасибо! Напишем, когда будет доступ.", "bad": "Проверьте электронную почту.", "none": "Предпросмотр: форма не подключена к хранилищу, ответы не отправляются."};
+  function track(name, props){
+    var d = Object.assign({event:name, variant:variant, lang:lang, path:location.pathname}, props||{});
+    if (CONFIG.endpoint && navigator.sendBeacon) { try { navigator.sendBeacon(CONFIG.endpoint, JSON.stringify(d)); } catch(e){} }
+    else if (window.console && console.debug) { console.debug('vakt', d); }
+  }
+  track('view');
+  // --- панель отладки: ?dev=1 включает и запоминает, ?dev=0 выключает; в предпросмотре включена всегда
+  var devOn = false;
+  try {
+    if (params.get('dev') === '1') localStorage.setItem('vaktDev', '1');
+    if (params.get('dev') === '0') localStorage.removeItem('vaktDev');
+    devOn = devOn || localStorage.getItem('vaktDev') === '1';
+  } catch(e) { devOn = devOn || params.get('dev') === '1'; }
+  if (devOn) document.body.classList.add('devmode');
+  // --- тема: светлая, тёмная или как в системе
+  var root = document.documentElement;
+  function curTheme(){ var a = root.getAttribute('data-theme'); return a || (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
+  function paintTheme(){
+    document.querySelectorAll('[data-theme-btn]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-theme-btn') === curTheme())); });
+    var saved = root.getAttribute('data-theme') || 'auto';
+    document.querySelectorAll('[data-dt]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-dt') === saved); });
+    document.querySelectorAll('[data-dv]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-dv') === variant); });
+  }
+  function setTheme(t){
+    if (t === 'auto') { root.removeAttribute('data-theme'); try { localStorage.removeItem('vaktTheme'); } catch(e){} }
+    else { root.setAttribute('data-theme', t); try { localStorage.setItem('vaktTheme', t); } catch(e){} }
+    paintTheme(); track('theme', {theme:t});
+  }
+  document.querySelectorAll('[data-theme-btn]').forEach(function(b){ b.addEventListener('click', function(){ setTheme(b.getAttribute('data-theme-btn')); }); });
+  document.querySelectorAll('[data-dt]').forEach(function(b){ b.addEventListener('click', function(){ setTheme(b.getAttribute('data-dt')); }); });
+  // --- смена варианта: на главной на месте, на страницах-вариантах переходом
+  var LINKS = {"a": "../a/", "b": "../b/", "c": "../c/", "r": "../"};
+  function showVariant(v){
+    if (v === 'r') { try { localStorage.removeItem('vaktVariant'); } catch(e){} v = ['a','b','c'][Math.floor(Math.random()*3)]; }
+    variant = v; try { localStorage.setItem('vaktVariant', v); } catch(e){}
+    document.querySelectorAll('[data-v]').forEach(function(el){ el.hidden = el.getAttribute('data-v') !== v; });
+    root.setAttribute('data-variant', v); paintTheme();
+  }
+  document.querySelectorAll('[data-dv]').forEach(function(b){ b.addEventListener('click', function(){
+    var v = b.getAttribute('data-dv');
+    if (FIXED || v === 'r' && FIXED) { location.href = LINKS[v]; return; }
+    showVariant(v);
+  }); });
+  // --- форма: переключение шагов для проверки
+  function formStep(n){
+    document.getElementById('one').hidden = n !== 1; document.getElementById('two').hidden = n !== 2; document.getElementById('three').hidden = n !== 3;
+    var bars = document.querySelectorAll('.steps-i i'); if (bars[1]) bars[1].classList.toggle('on', n > 1);
+    if (n === 3) document.getElementById('threemsg').textContent = T.none;
+    document.getElementById('access').scrollIntoView();
+  }
+  document.querySelectorAll('[data-df]').forEach(function(b){ b.addEventListener('click', function(){ formStep(parseInt(b.getAttribute('data-df'), 10)); }); });
+  var dev = document.getElementById('dev'), dm = document.getElementById('devmin');
+  if (dev && innerWidth < 640) dev.classList.add('min');
+  if (dm) dm.addEventListener('click', function(){ dev.classList.toggle('min'); dm.textContent = dev.classList.contains('min') ? '+' : '–'; });
+  paintTheme();
+  var how = document.getElementById('how');
+  if ('IntersectionObserver' in window && how) new IntersectionObserver(function(es,o){ es.forEach(function(e){ if(e.isIntersecting){ track('scroll_how'); o.disconnect(); }}); }).observe(how);
+  document.querySelectorAll('[data-cta]').forEach(function(a){ a.addEventListener('click', function(){ track('cta_click', {place:a.getAttribute('data-cta')}); }); });
+  var utm = {}; ['utm_source','utm_medium','utm_campaign'].forEach(function(k){ utm[k] = params.get(k) || ''; });
+  var f1 = document.getElementById('f1'), f2 = document.getElementById('f2'), msg = document.getElementById('msg'), msg2 = document.getElementById('msg2');
+  var email = '';
+  function post(payload){
+    if (!CONFIG.endpoint) return Promise.resolve(false);
+    return fetch(CONFIG.endpoint, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}).then(function(r){ return r.ok; }).catch(function(){ return false; });
+  }
+  if (f1) f1.addEventListener('submit', function(ev){
+    ev.preventDefault(); msg.className = 'msg'; msg.textContent = '';
+    email = document.getElementById('email').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.className = 'msg err'; msg.textContent = T.bad; return; }
+    if (document.getElementById('hp').value) return;
+    track('submit_email');
+    post(Object.assign({stage:1, email:email, variant:variant, lang:lang, tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||'')}, utm));
+    document.getElementById('one').hidden = true; document.getElementById('two').hidden = false;
+    document.querySelectorAll('.steps-i i')[1].classList.add('on');
+    var tz = (Intl.DateTimeFormat().resolvedOptions().timeZone || '').split('/').pop().replace(/_/g,' ');
+    var c = document.getElementById('city'); if (c && !c.value && tz) c.placeholder = tz;
+    track('stage2_view');
+  });
+  function collect(){
+    var o = {stage:2, email:email, variant:variant, lang:lang};
+    ['q1','q2','q3','q4'].forEach(function(k){ o[k] = Array.prototype.map.call(f2.querySelectorAll('input[name='+k+']:checked'), function(i){ return i.value; }); });
+    o.city = document.getElementById('city').value.trim(); o.talk = document.getElementById('talk').checked;
+    return o;
+  }
+  f2.querySelectorAll('input[name=q4]').forEach(function(i){ i.addEventListener('change', function(){
+    var on = f2.querySelectorAll('input[name=q4]:checked');
+    if (on.length > 2) { i.checked = false; }
+  }); });
+  function finish(ok){
+    document.getElementById('two').hidden = true; document.getElementById('three').hidden = false;
+    document.getElementById('threemsg').textContent = CONFIG.endpoint ? T.done : T.none;
+  }
+  if (f2) f2.addEventListener('submit', function(ev){ ev.preventDefault(); track('submit_answers'); post(collect()).then(finish); });
+  var skip = document.getElementById('skip'); if (skip) skip.addEventListener('click', function(){ track('skip_answers'); finish(); });
+})();
+</script>
+</body>
+</html>
